@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "oioxo": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "oioxo-mcp",
+        "serve"
+      ]
+    }
+  }
+}

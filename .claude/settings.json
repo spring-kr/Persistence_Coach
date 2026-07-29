@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"console.log('OIOXO reminder: before reading or searching project files for a code task, call the oioxo MCP get_context tool with the task as the query - it returns the minimal relevant slice at about 90 percent fewer context tokens. Use get_skeleton to learn an API cheaply and get_impact before refactors.')\""
+          }
+        ]
+      }
+    ]
+  }
+}
