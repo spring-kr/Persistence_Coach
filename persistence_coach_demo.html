@@ -1,202 +1,1070 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>지속 코치 v0.1 — uptime, not 1RM</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>지속 코치 v0.1 — uptime, not 1RM</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;700&display=swap");
 
-:root{
-  --ink:#131920; --panel:#1B232E; --panel2:#161D26; --line:#2A3542;
-  --text:#E6EDF3; --muted:#8899AA; --dim:#5A6675;
-  --active:#43B58C; --declining:#E3A63C; --parallel:#5D8DE8;
-  --dormant:#5A6675; --returning:#D96A8B;
-  --mono:'IBM Plex Mono',monospace; --sans:'Noto Sans KR',-apple-system,sans-serif;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--ink);color:var(--text);font-family:var(--sans);min-height:100vh;padding:28px 20px 60px}
-.wrap{max-width:1180px;margin:0 auto}
+      :root {
+        --ink: #131920;
+        --panel: #1b232e;
+        --panel2: #161d26;
+        --line: #2a3542;
+        --text: #e6edf3;
+        --muted: #8899aa;
+        --dim: #5a6675;
+        --active: #43b58c;
+        --declining: #e3a63c;
+        --parallel: #5d8de8;
+        --dormant: #5a6675;
+        --returning: #d96a8b;
+        --mono: "IBM Plex Mono", monospace;
+        --sans: "Noto Sans KR", -apple-system, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: var(--ink);
+        color: var(--text);
+        font-family: var(--sans);
+        min-height: 100vh;
+        padding: 28px 20px 60px;
+      }
+      .wrap {
+        max-width: 1180px;
+        margin: 0 auto;
+      }
 
-header{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;
-  border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:22px}
-.brand{font-family:var(--mono);font-size:20px;font-weight:600;letter-spacing:-.5px}
-.brand .v{color:var(--muted);font-size:13px;font-weight:400;margin-left:8px}
-.slo{font-family:var(--mono);font-size:12px;color:var(--muted)}
-.slo b{color:var(--active);font-weight:500}
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 8px;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 18px;
+        margin-bottom: 22px;
+      }
+      .brand {
+        font-family: var(--mono);
+        font-size: 20px;
+        font-weight: 600;
+        letter-spacing: -0.5px;
+      }
+      .brand .v {
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 400;
+        margin-left: 8px;
+      }
+      .slo {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .slo b {
+        color: var(--active);
+        font-weight: 500;
+      }
 
-.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;color:var(--muted);
-  text-transform:uppercase;margin-bottom:10px}
+      .eyebrow {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 1.5px;
+        color: var(--muted);
+        text-transform: uppercase;
+        margin-bottom: 10px;
+      }
 
-/* ---- 시그니처: uptime 스트립 ---- */
-.strip{display:flex;gap:3px;margin-bottom:6px}
-.seg{flex:1;height:44px;border-radius:3px;cursor:pointer;position:relative;
-  transition:transform .12s;border:1px solid transparent}
-.seg:hover{transform:translateY(-3px)}
-.seg.sel{border-color:var(--text);box-shadow:0 0 0 1px var(--text)}
-.seg .wk{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);
-  font-family:var(--mono);font-size:9px;color:var(--dim)}
-.seg .al{position:absolute;top:3px;right:4px;width:5px;height:5px;border-radius:50%;background:#fff;opacity:.85}
-.legend{display:flex;gap:16px;flex-wrap:wrap;margin:26px 0 4px;font-family:var(--mono);font-size:11px;color:var(--muted)}
-.legend span{display:flex;align-items:center;gap:6px}
-.dot{width:9px;height:9px;border-radius:2px}
+      /* ---- 시그니처: uptime 스트립 ---- */
+      .strip {
+        display: flex;
+        gap: 3px;
+        margin-bottom: 6px;
+      }
+      .seg {
+        flex: 1;
+        height: 44px;
+        border-radius: 3px;
+        cursor: pointer;
+        position: relative;
+        transition: transform 0.12s;
+        border: 1px solid transparent;
+      }
+      .seg:hover {
+        transform: translateY(-3px);
+      }
+      .seg.sel {
+        border-color: var(--text);
+        box-shadow: 0 0 0 1px var(--text);
+      }
+      .seg .wk {
+        position: absolute;
+        bottom: -18px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: var(--mono);
+        font-size: 9px;
+        color: var(--dim);
+      }
+      .seg .al {
+        position: absolute;
+        top: 3px;
+        right: 4px;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: #fff;
+        opacity: 0.85;
+      }
+      .legend {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin: 26px 0 4px;
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .legend span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 2px;
+      }
 
-.bars{display:flex;gap:3px;height:34px;align-items:flex-end;margin-top:14px}
-.bars .b{flex:1;background:var(--line);border-radius:2px 2px 0 0;min-height:2px}
-.barlabel{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:4px}
+      .bars {
+        display: flex;
+        gap: 3px;
+        height: 34px;
+        align-items: flex-end;
+        margin-top: 14px;
+      }
+      .bars .b {
+        flex: 1;
+        background: var(--line);
+        border-radius: 2px 2px 0 0;
+        min-height: 2px;
+      }
+      .barlabel {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--dim);
+        margin-top: 4px;
+      }
 
-.cols{display:grid;grid-template-columns:340px 1fr;gap:18px;margin-top:26px}
-@media(max-width:840px){.cols{grid-template-columns:1fr}}
+      .cols {
+        display: grid;
+        grid-template-columns: 340px 1fr;
+        gap: 18px;
+        margin-top: 26px;
+      }
+      @media (max-width: 840px) {
+        .cols {
+          grid-template-columns: 1fr;
+        }
+      }
 
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px}
-.panel h3{font-family:var(--mono);font-size:12px;letter-spacing:1px;color:var(--muted);
-  text-transform:uppercase;margin-bottom:14px;font-weight:500}
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 18px;
+      }
+      .panel h3 {
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 1px;
+        color: var(--muted);
+        text-transform: uppercase;
+        margin-bottom: 14px;
+        font-weight: 500;
+      }
 
-.statebadge{display:inline-block;font-family:var(--mono);font-size:15px;font-weight:600;
-  padding:6px 14px;border-radius:6px;margin-bottom:14px}
-.kv{display:flex;justify-content:space-between;font-family:var(--mono);font-size:13px;
-  padding:7px 0;border-bottom:1px dashed var(--line)}
-.kv .k{color:var(--muted)}
-.reasons{margin-top:12px;font-size:12.5px;line-height:1.65;color:var(--declining)}
-.reasons.ok{color:var(--active)}
+      .statebadge {
+        display: inline-block;
+        font-family: var(--mono);
+        font-size: 15px;
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 6px;
+        margin-bottom: 14px;
+      }
+      .kv {
+        display: flex;
+        justify-content: space-between;
+        font-family: var(--mono);
+        font-size: 13px;
+        padding: 7px 0;
+        border-bottom: 1px dashed var(--line);
+      }
+      .kv .k {
+        color: var(--muted);
+      }
+      .reasons {
+        margin-top: 12px;
+        font-size: 12.5px;
+        line-height: 1.65;
+        color: var(--declining);
+      }
+      .reasons.ok {
+        color: var(--active);
+      }
 
-.policy{margin-top:16px;background:var(--panel2);border-radius:8px;padding:13px;font-size:12.5px;line-height:1.7}
-.policy .do{color:var(--text)}
-.policy .never{color:var(--returning);margin-top:8px}
-.policy b{font-family:var(--mono);font-size:10.5px;letter-spacing:1px;color:var(--muted);display:block;margin-bottom:3px}
+      .policy {
+        margin-top: 16px;
+        background: var(--panel2);
+        border-radius: 8px;
+        padding: 13px;
+        font-size: 12.5px;
+        line-height: 1.7;
+      }
+      .policy .do {
+        color: var(--text);
+      }
+      .policy .never {
+        color: var(--returning);
+        margin-top: 8px;
+      }
+      .policy b {
+        font-family: var(--mono);
+        font-size: 10.5px;
+        letter-spacing: 1px;
+        color: var(--muted);
+        display: block;
+        margin-bottom: 3px;
+      }
 
-/* ---- 채팅 ---- */
-.chatpanel{display:flex;flex-direction:column;min-height:540px}
-.msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:4px 2px;max-height:520px}
-.msg{max-width:82%;padding:11px 14px;border-radius:12px;font-size:14px;line-height:1.7;white-space:pre-wrap}
-.msg.user{align-self:flex-end;background:#2A3B52;border-bottom-right-radius:4px}
-.msg.coach{align-self:flex-start;background:var(--panel2);border:1px solid var(--line);border-bottom-left-radius:4px}
-.msg.sys{align-self:center;background:none;color:var(--dim);font-family:var(--mono);font-size:11px;padding:2px}
-.msg.coach .tag{font-family:var(--mono);font-size:10px;color:var(--muted);display:block;margin-bottom:5px;letter-spacing:.5px}
+      /* ---- 채팅 ---- */
+      .chatpanel {
+        display: flex;
+        flex-direction: column;
+        min-height: 540px;
+      }
+      .msgs {
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 4px 2px;
+        max-height: 520px;
+      }
+      .msg {
+        max-width: 82%;
+        padding: 11px 14px;
+        border-radius: 12px;
+        font-size: 14px;
+        line-height: 1.7;
+        white-space: pre-wrap;
+      }
+      .msg.user {
+        align-self: flex-end;
+        background: #2a3b52;
+        border-bottom-right-radius: 4px;
+      }
+      .msg.coach {
+        align-self: flex-start;
+        background: var(--panel2);
+        border: 1px solid var(--line);
+        border-bottom-left-radius: 4px;
+      }
+      .msg.sys {
+        align-self: center;
+        background: none;
+        color: var(--dim);
+        font-family: var(--mono);
+        font-size: 11px;
+        padding: 2px;
+      }
+      .msg.coach .tag {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--muted);
+        display: block;
+        margin-bottom: 5px;
+        letter-spacing: 0.5px;
+      }
 
-.presets{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
-.presets button{background:none;border:1px solid var(--line);color:var(--muted);border-radius:16px;
-  padding:6px 13px;font-size:12px;cursor:pointer;font-family:var(--sans);transition:all .12s}
-.presets button:hover{border-color:var(--muted);color:var(--text)}
+      .presets {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin: 12px 0;
+      }
+      .presets button {
+        background: none;
+        border: 1px solid var(--line);
+        color: var(--muted);
+        border-radius: 16px;
+        padding: 6px 13px;
+        font-size: 12px;
+        cursor: pointer;
+        font-family: var(--sans);
+        transition: all 0.12s;
+      }
+      .presets button:hover {
+        border-color: var(--muted);
+        color: var(--text);
+      }
 
-.inputrow{display:flex;gap:8px;margin-top:auto}
-.inputrow textarea{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:8px;
-  color:var(--text);padding:11px 13px;font-size:14px;font-family:var(--sans);resize:none;height:48px;outline:none}
-.inputrow textarea:focus{border-color:var(--muted)}
-.inputrow button{background:var(--active);color:#0B1210;border:none;border-radius:8px;padding:0 20px;
-  font-weight:700;font-size:14px;cursor:pointer;font-family:var(--sans)}
-.inputrow button:disabled{background:var(--dim);cursor:wait}
+      .inputrow {
+        display: flex;
+        gap: 8px;
+        margin-top: auto;
+      }
+      .inputrow textarea {
+        flex: 1;
+        background: var(--panel2);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        color: var(--text);
+        padding: 11px 13px;
+        font-size: 14px;
+        font-family: var(--sans);
+        resize: none;
+        height: 48px;
+        outline: none;
+      }
+      .inputrow textarea:focus {
+        border-color: var(--muted);
+      }
+      .inputrow button {
+        background: var(--active);
+        color: #0b1210;
+        border: none;
+        border-radius: 8px;
+        padding: 0 20px;
+        font-weight: 700;
+        font-size: 14px;
+        cursor: pointer;
+        font-family: var(--sans);
+      }
+      .inputrow button:disabled {
+        background: var(--dim);
+        cursor: wait;
+      }
 
-.footer{margin-top:26px;font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.8}
-.footer b{color:var(--muted)}
-</style>
-</head>
-<body>
-<div class="wrap">
-  <header>
-    <div class="brand">지속 코치<span class="v">judgment core v0.1 · demo</span></div>
-    <div class="slo">SLO: <b>uptime</b>, not 1RM</div>
-  </header>
+      .footer {
+        margin-top: 26px;
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--dim);
+        line-height: 1.8;
+      }
+      .footer b {
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <div class="brand">
+          지속 코치<span class="v">judgment core v0.1 · demo</span>
+        </div>
+        <div class="slo">SLO: <b>uptime</b>, not 1RM</div>
+      </header>
 
-  <div class="eyebrow">24-week training uptime — 주를 클릭해 그 시점의 에이전트와 대화</div>
-  <div class="presets" id="linetoggle" style="margin:0 0 14px">
-    <button onclick="switchLine('A')" id="line-A">세계선 A · 완전 휴면</button>
-    <button onclick="switchLine('B')" id="line-B">세계선 B · 병행 페일오버</button>
-  </div>
-  <div class="strip" id="strip"></div>
-  <div style="height:16px"></div>
-  <div class="bars" id="bars"></div>
-  <div class="barlabel">주별 세션 시간 (막대 높이) · 흰 점 = 열화 경보</div>
-  <div class="legend" id="legend"></div>
+      <div class="eyebrow">
+        24-week training uptime — 주를 클릭해 그 시점의 에이전트와 대화
+      </div>
+      <div class="presets" id="linetoggle" style="margin: 0 0 14px">
+        <button onclick="switchLine('A')" id="line-A">
+          세계선 A · 완전 휴면
+        </button>
+        <button onclick="switchLine('B')" id="line-B">
+          세계선 B · 병행 페일오버
+        </button>
+      </div>
+      <div class="strip" id="strip"></div>
+      <div style="height: 16px"></div>
+      <div class="bars" id="bars"></div>
+      <div class="barlabel">주별 세션 시간 (막대 높이) · 흰 점 = 열화 경보</div>
+      <div class="legend" id="legend"></div>
 
-  <div class="cols">
-    <div>
-      <div class="panel">
-        <h3>Telemetry — <span id="wklabel"></span></h3>
-        <div id="badge"></div>
-        <div class="kv"><span class="k">헬스 세션</span><span id="t-gym"></span></div>
-        <div class="kv"><span class="k">세션당 종목 수</span><span id="t-div"></span></div>
-        <div class="kv"><span class="k">평균 세션 시간</span><span id="t-dur"></span></div>
-        <div class="reasons" id="t-reasons"></div>
-        <div class="policy">
-          <b>POLICY / DO</b><div class="do" id="p-do"></div>
-          <div class="never"><b>NEVER</b><span id="p-never"></span></div>
+      <div class="cols">
+        <div>
+          <div class="panel">
+            <h3>Telemetry — <span id="wklabel"></span></h3>
+            <div id="badge"></div>
+            <div class="kv">
+              <span class="k">헬스 세션</span><span id="t-gym"></span>
+            </div>
+            <div class="kv">
+              <span class="k">세션당 종목 수</span><span id="t-div"></span>
+            </div>
+            <div class="kv">
+              <span class="k">평균 세션 시간</span><span id="t-dur"></span>
+            </div>
+            <div class="reasons" id="t-reasons"></div>
+            <div class="policy">
+              <b>POLICY / DO</b>
+              <div class="do" id="p-do"></div>
+              <div class="never"><b>NEVER</b><span id="p-never"></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel chatpanel">
+          <h3>대화 레이어 (LLM) — 판단은 코어가, 말은 모델이</h3>
+          <div class="msgs" id="msgs"></div>
+          <div class="presets">
+            <button onclick="preset('요즘 헬스장 가는 게 좀 귀찮아졌어요')">
+              "요즘 헬스장 가기 귀찮아요"
+            </button>
+            <button
+              onclick="
+                preset('요즘 데드 다음 날 허리가 좀 뻐근한데, 다들 그런 거죠?')
+              "
+            >
+              허리 뻐근 (가드레일 테스트)
+            </button>
+            <button
+              onclick="
+                preset(
+                  '오랜만에 다시 시작해보려고요. 근데 예전 무게가 안 나올까봐 무섭네요',
+                )
+              "
+            >
+              복귀 상담
+            </button>
+            <button
+              onclick="
+                presetParallel(
+                  '요즘 배드민턴 치는데 무릎이 좀 안 좋아진 것 같아요',
+                )
+              "
+            >
+              병행기 · 리스크 신호(R20)
+            </button>
+            <button
+              onclick="
+                presetParallel(
+                  '요즘 비도 오고 너무 더워서 로드사이클을 통 못 타요',
+                )
+              "
+            >
+              병행기 · 환경 제약(R21)
+            </button>
+          </div>
+          <div class="inputrow">
+            <textarea
+              id="input"
+              placeholder="메시지 입력..."
+              onkeydown="
+                if (event.key === 'Enter' && !event.shiftKey) {
+                  event.preventDefault();
+                  send();
+                }
+              "
+            ></textarea>
+            <button id="sendbtn" onclick="send()">전송</button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="panel chatpanel">
-      <h3>대화 레이어 (LLM) — 판단은 코어가, 말은 모델이</h3>
-      <div class="msgs" id="msgs"></div>
-      <div class="presets">
-        <button onclick="preset('요즘 헬스장 가는 게 좀 귀찮아졌어요')">"요즘 헬스장 가기 귀찮아요"</button>
-        <button onclick="preset('요즘 데드 다음 날 허리가 좀 뻐근한데, 다들 그런 거죠?')">허리 뻐근 (가드레일 테스트)</button>
-        <button onclick="preset('오랜만에 다시 시작해보려고요. 근데 예전 무게가 안 나올까봐 무섭네요')">복귀 상담</button>
-        <button onclick="presetParallel('요즘 배드민턴 치는데 무릎이 좀 안 좋아진 것 같아요')">병행기 · 리스크 신호(R20)</button>
-        <button onclick="presetParallel('요즘 비도 오고 너무 더워서 로드사이클을 통 못 타요')">병행기 · 환경 제약(R21)</button>
-      </div>
-      <div class="inputrow">
-        <textarea id="input" placeholder="메시지 입력..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send()}"></textarea>
-        <button id="sendbtn" onclick="send()">전송</button>
+      <div class="footer">
+        <b>아키텍처:</b> 상태 전이·신호 감지·개입 정책 = 결정적 코어 (같은 입력
+        → 같은 판단) / LLM = 표현 레이어만 담당<br />
+        <b>판단 출처:</b> R7~R10 = hyojin_direct (인터뷰 Q1~Q5) · R20~R22 =
+        hyojin_direct (2026-07 병행기 전이 세션) · 안전 가드레일 = reference
+        (임상 표준)<br />
+        <b>주의:</b> 데모 데이터는 합성 24주 로그(세계선 A/B). 의료 조언 아님 —
+        통증 신호 시 에이전트가 의료 안내로 전환.
       </div>
     </div>
-  </div>
 
-  <div class="footer">
-    <b>아키텍처:</b> 상태 전이·신호 감지·개입 정책 = 결정적 코어 (같은 입력 → 같은 판단) / LLM = 표현 레이어만 담당<br>
-    <b>판단 출처:</b> R7~R10 = hyojin_direct (인터뷰 Q1~Q5) · R20~R22 = hyojin_direct (2026-07 병행기 전이 세션) · 안전 가드레일 = reference (임상 표준)<br>
-    <b>주의:</b> 데모 데이터는 합성 24주 로그(세계선 A/B). 의료 조언 아님 — 통증 신호 시 에이전트가 의료 안내로 전환.
-  </div>
-</div>
+    <script>
+      // ================= 결정적 판단 코어 (검증된 파이썬 코어의 산출 트레이스) =================
+      const WORLDLINES = {
+        A: [
+          {
+            week: 1,
+            gym: 4,
+            alt: 0,
+            div: 5.2,
+            dur: 82,
+            state: "ACTIVE",
+            alert: false,
+            reasons: [],
+          },
+          {
+            week: 2,
+            gym: 4,
+            alt: 0,
+            div: 5.5,
+            dur: 87,
+            state: "ACTIVE",
+            alert: false,
+            reasons: [],
+          },
+          {
+            week: 3,
+            gym: 4,
+            alt: 0,
+            div: 5.2,
+            dur: 87,
+            state: "ACTIVE",
+            alert: false,
+            reasons: [],
+          },
+          {
+            week: 4,
+            gym: 4,
+            alt: 0,
+            div: 5.5,
+            dur: 80,
+            state: "ACTIVE",
+            alert: false,
+            reasons: [],
+          },
+          {
+            week: 5,
+            gym: 4,
+            alt: 0,
+            div: 4.2,
+            dur: 82,
+            state: "ACTIVE",
+            alert: true,
+            reasons: ["종목 단순화 추세 (-0.35개/주)"],
+          },
+          {
+            week: 6,
+            gym: 4,
+            alt: 0,
+            div: 5.2,
+            dur: 81,
+            state: "ACTIVE",
+            alert: false,
+            reasons: [],
+          },
+          {
+            week: 7,
+            gym: 4,
+            alt: 0,
+            div: 3.2,
+            dur: 72,
+            state: "ACTIVE",
+            alert: true,
+            reasons: ["종목 단순화 추세 (-0.58개/주)"],
+          },
+          {
+            week: 8,
+            gym: 4,
+            alt: 0,
+            div: 3.5,
+            dur: 68,
+            state: "DECLINING",
+            alert: true,
+            reasons: ["종목 단순화 추세 (-0.43개/주)"],
+          },
+          {
+            week: 9,
+            gym: 3,
+            alt: 0,
+            div: 2.3,
+            dur: 53,
+            state: "DECLINING",
+            alert: true,
+            reasons: [
+              "종목 단순화 추세 (-0.85개/주)",
+              "세션 시간 감소 추세 (-8.8분/주)",
+            ],
+          },
+          {
+            week: 10,
+            gym: 3,
+            alt: 0,
+            div: 2.7,
+            dur: 50,
+            state: "DECLINING",
+            alert: true,
+            reasons: [
+              "종목 단순화 추세 (-0.29개/주)",
+              "세션 시간 감소 추세 (-8.0분/주)",
+            ],
+          },
+          {
+            week: 11,
+            gym: 2,
+            alt: 0,
+            div: 2.0,
+            dur: 40,
+            state: "DECLINING",
+            alert: true,
+            reasons: [
+              "종목 단순화 추세 (-0.42개/주)",
+              "세션 시간 감소 추세 (-8.7분/주)",
+            ],
+          },
+          {
+            week: 12,
+            gym: 1,
+            alt: 0,
+            div: 1.0,
+            dur: 34,
+            state: "DECLINING",
+            alert: true,
+            reasons: [
+              "종목 단순화 추세 (-0.47개/주)",
+              "세션 시간 감소 추세 (-6.6분/주)",
+            ],
+          },
+          {
+            week: 13,
+            gym: 0,
+            alt: 0,
+            div: 0.0,
+            dur: 0,
+            state: "DECLINING",
+            alert: true,
+            reasons: [
+              "종목 단순화 추세 (-0.83개/주)",
+              "세션 시간 감소 추세 (-7.9분/주)",
+              "결석 발생 (지연 지표)",
+            ],
+          },
+          {
+            week: 14,
+            gym: 0,
+            alt: 0,
+            div: 0.0,
+            dur: 0,
+            state: "DORMANT",
+            alert: true,
+            reasons: ["결석 발생 (지연 지표)"],
+          },
+          {
+            week: 15,
+            gym: 0,
+            alt: 0,
+            div: 0.0,
+            dur: 0,
+            state: "DORMANT",
+            alert: true,
+            reasons: ["결석 발생 (지연 지표)"],
+          },
+          {
+            week: 16,
+            gym: 0,
+            alt: 0,
+            div: 0.0,
+            dur: 0,
+            state: "DORMANT",
+            alert: true,
+            reasons: ["결석 발생 (지연 지표)"],
+          },
+          {
+            week: 17,
+            gym: 0,
+            alt: 0,
+            div: 0.0,
+            dur: 0,
+            state: "DORMANT",
+            alert: true,
+            reasons: ["결석 발생 (지연 지표)"],
+          },
+          {
+            week: 18,
+            gym: 0,
+            alt: 0,
+            div: 0.0,
+            dur: 0,
+            state: "DORMANT",
+            alert: true,
+            reasons: ["결석 발생 (지연 지표)"],
+          },
+          {
+            week: 19,
+            gym: 2,
+            alt: 0,
+            div: 2.0,
+            dur: 43,
+            state: "RETURNING",
+            alert: false,
+            reasons: [],
+          },
+          {
+            week: 20,
+            gym: 3,
+            alt: 0,
+            div: 3.0,
+            dur: 54,
+            state: "RETURNING",
+            alert: false,
+            reasons: [],
+          },
+          {
+            week: 21,
+            gym: 3,
+            alt: 0,
+            div: 3.7,
+            dur: 55,
+            state: "RETURNING",
+            alert: false,
+            reasons: [],
+          },
+          {
+            week: 22,
+            gym: 4,
+            alt: 0,
+            div: 4.8,
+            dur: 70,
+            state: "RETURNING",
+            alert: false,
+            reasons: [],
+          },
+          {
+            week: 23,
+            gym: 4,
+            alt: 0,
+            div: 5.0,
+            dur: 79,
+            state: "ACTIVE",
+            alert: false,
+            reasons: [],
+          },
+          {
+            week: 24,
+            gym: 4,
+            alt: 0,
+            div: 4.5,
+            dur: 72,
+            state: "ACTIVE",
+            alert: false,
+            reasons: [],
+          },
+        ],
+        B: [
+          {
+            week: 1,
+            gym: 4,
+            alt: 0,
+            div: 5.2,
+            dur: 81,
+            state: "ACTIVE",
+            alert: false,
+            reasons: [],
+          },
+          {
+            week: 2,
+            gym: 4,
+            alt: 0,
+            div: 5.0,
+            dur: 79,
+            state: "ACTIVE",
+            alert: false,
+            reasons: [],
+          },
+          {
+            week: 3,
+            gym: 4,
+            alt: 0,
+            div: 5.5,
+            dur: 80,
+            state: "ACTIVE",
+            alert: false,
+            reasons: [],
+          },
+          {
+            week: 4,
+            gym: 4,
+            alt: 0,
+            div: 5.5,
+            dur: 79,
+            state: "ACTIVE",
+            alert: false,
+            reasons: [],
+          },
+          {
+            week: 5,
+            gym: 4,
+            alt: 0,
+            div: 5.5,
+            dur: 77,
+            state: "ACTIVE",
+            alert: false,
+            reasons: [],
+          },
+          {
+            week: 6,
+            gym: 4,
+            alt: 0,
+            div: 5.8,
+            dur: 78,
+            state: "ACTIVE",
+            alert: false,
+            reasons: [],
+          },
+          {
+            week: 7,
+            gym: 4,
+            alt: 0,
+            div: 3.2,
+            dur: 72,
+            state: "ACTIVE",
+            alert: true,
+            reasons: ["종목 단순화 추세 (-0.65개/주)"],
+          },
+          {
+            week: 8,
+            gym: 4,
+            alt: 0,
+            div: 3.2,
+            dur: 67,
+            state: "DECLINING",
+            alert: true,
+            reasons: ["종목 단순화 추세 (-0.93개/주)"],
+          },
+          {
+            week: 9,
+            gym: 3,
+            alt: 0,
+            div: 2.7,
+            dur: 50,
+            state: "DECLINING",
+            alert: true,
+            reasons: [
+              "종목 단순화 추세 (-0.93개/주)",
+              "세션 시간 감소 추세 (-8.8분/주)",
+            ],
+          },
+          {
+            week: 10,
+            gym: 3,
+            alt: 2,
+            div: 2.0,
+            dur: 54,
+            state: "PARALLEL",
+            alert: true,
+            reasons: [
+              "종목 단순화 추세 (-0.43개/주)",
+              "세션 시간 감소 추세 (-7.1분/주)",
+            ],
+          },
+          {
+            week: 11,
+            gym: 2,
+            alt: 2,
+            div: 1.5,
+            dur: 43,
+            state: "PARALLEL",
+            alert: true,
+            reasons: [
+              "종목 단순화 추세 (-0.59개/주)",
+              "세션 시간 감소 추세 (-7.0분/주)",
+            ],
+          },
+          {
+            week: 12,
+            gym: 1,
+            alt: 2,
+            div: 1.0,
+            dur: 33,
+            state: "PARALLEL",
+            alert: true,
+            reasons: [
+              "종목 단순화 추세 (-0.55개/주)",
+              "세션 시간 감소 추세 (-6.2분/주)",
+            ],
+          },
+          {
+            week: 13,
+            gym: 1,
+            alt: 2,
+            div: 2.0,
+            dur: 43,
+            state: "PARALLEL",
+            alert: false,
+            reasons: [],
+          },
+          {
+            week: 14,
+            gym: 1,
+            alt: 2,
+            div: 2.0,
+            dur: 34,
+            state: "PARALLEL",
+            alert: false,
+            reasons: [],
+          },
+          {
+            week: 15,
+            gym: 1,
+            alt: 2,
+            div: 2.0,
+            dur: 39,
+            state: "PARALLEL",
+            alert: false,
+            reasons: [],
+          },
+          {
+            week: 16,
+            gym: 1,
+            alt: 2,
+            div: 1.0,
+            dur: 31,
+            state: "PARALLEL",
+            alert: true,
+            reasons: ["종목 단순화 추세 (-0.30개/주)"],
+          },
+          {
+            week: 17,
+            gym: 1,
+            alt: 2,
+            div: 1.0,
+            dur: 38,
+            state: "PARALLEL",
+            alert: true,
+            reasons: ["종목 단순화 추세 (-0.40개/주)"],
+          },
+          {
+            week: 18,
+            gym: 1,
+            alt: 2,
+            div: 1.0,
+            dur: 35,
+            state: "PARALLEL",
+            alert: true,
+            reasons: ["종목 단순화 추세 (-0.30개/주)"],
+          },
+          {
+            week: 19,
+            gym: 2,
+            alt: 0,
+            div: 2.5,
+            dur: 44,
+            state: "PARALLEL",
+            alert: false,
+            reasons: [],
+          },
+          {
+            week: 20,
+            gym: 3,
+            alt: 0,
+            div: 3.7,
+            dur: 56,
+            state: "PARALLEL",
+            alert: false,
+            reasons: [],
+          },
+          {
+            week: 21,
+            gym: 3,
+            alt: 0,
+            div: 3.3,
+            dur: 55,
+            state: "PARALLEL",
+            alert: false,
+            reasons: [],
+          },
+          {
+            week: 22,
+            gym: 4,
+            alt: 0,
+            div: 5.8,
+            dur: 79,
+            state: "ACTIVE",
+            alert: false,
+            reasons: [],
+          },
+          {
+            week: 23,
+            gym: 4,
+            alt: 0,
+            div: 5.5,
+            dur: 70,
+            state: "ACTIVE",
+            alert: false,
+            reasons: [],
+          },
+          {
+            week: 24,
+            gym: 4,
+            alt: 0,
+            div: 4.5,
+            dur: 76,
+            state: "ACTIVE",
+            alert: false,
+            reasons: [],
+          },
+        ],
+      };
+      const WORLDLINE_INFO = {
+        A: {
+          label: "세계선 A · 완전 휴면",
+          desc: "열정저하 → 결석 → 완전 휴면 → 복귀",
+        },
+        B: {
+          label: "세계선 B · 병행 페일오버",
+          desc: "열정저하 → 수영 병행(PARALLEL) → 헬스 복귀",
+        },
+      };
+      let currentLine = "A";
 
-<script>
-// ================= 결정적 판단 코어 (검증된 파이썬 코어의 산출 트레이스) =================
-const WORLDLINES = {
-  A: [{"week": 1, "gym": 4, "alt": 0, "div": 5.2, "dur": 82, "state": "ACTIVE", "alert": false, "reasons": []}, {"week": 2, "gym": 4, "alt": 0, "div": 5.5, "dur": 87, "state": "ACTIVE", "alert": false, "reasons": []}, {"week": 3, "gym": 4, "alt": 0, "div": 5.2, "dur": 87, "state": "ACTIVE", "alert": false, "reasons": []}, {"week": 4, "gym": 4, "alt": 0, "div": 5.5, "dur": 80, "state": "ACTIVE", "alert": false, "reasons": []}, {"week": 5, "gym": 4, "alt": 0, "div": 4.2, "dur": 82, "state": "ACTIVE", "alert": true, "reasons": ["종목 단순화 추세 (-0.35개/주)"]}, {"week": 6, "gym": 4, "alt": 0, "div": 5.2, "dur": 81, "state": "ACTIVE", "alert": false, "reasons": []}, {"week": 7, "gym": 4, "alt": 0, "div": 3.2, "dur": 72, "state": "ACTIVE", "alert": true, "reasons": ["종목 단순화 추세 (-0.58개/주)"]}, {"week": 8, "gym": 4, "alt": 0, "div": 3.5, "dur": 68, "state": "DECLINING", "alert": true, "reasons": ["종목 단순화 추세 (-0.43개/주)"]}, {"week": 9, "gym": 3, "alt": 0, "div": 2.3, "dur": 53, "state": "DECLINING", "alert": true, "reasons": ["종목 단순화 추세 (-0.85개/주)", "세션 시간 감소 추세 (-8.8분/주)"]}, {"week": 10, "gym": 3, "alt": 0, "div": 2.7, "dur": 50, "state": "DECLINING", "alert": true, "reasons": ["종목 단순화 추세 (-0.29개/주)", "세션 시간 감소 추세 (-8.0분/주)"]}, {"week": 11, "gym": 2, "alt": 0, "div": 2.0, "dur": 40, "state": "DECLINING", "alert": true, "reasons": ["종목 단순화 추세 (-0.42개/주)", "세션 시간 감소 추세 (-8.7분/주)"]}, {"week": 12, "gym": 1, "alt": 0, "div": 1.0, "dur": 34, "state": "DECLINING", "alert": true, "reasons": ["종목 단순화 추세 (-0.47개/주)", "세션 시간 감소 추세 (-6.6분/주)"]}, {"week": 13, "gym": 0, "alt": 0, "div": 0.0, "dur": 0, "state": "DECLINING", "alert": true, "reasons": ["종목 단순화 추세 (-0.83개/주)", "세션 시간 감소 추세 (-7.9분/주)", "결석 발생 (지연 지표)"]}, {"week": 14, "gym": 0, "alt": 0, "div": 0.0, "dur": 0, "state": "DORMANT", "alert": true, "reasons": ["결석 발생 (지연 지표)"]}, {"week": 15, "gym": 0, "alt": 0, "div": 0.0, "dur": 0, "state": "DORMANT", "alert": true, "reasons": ["결석 발생 (지연 지표)"]}, {"week": 16, "gym": 0, "alt": 0, "div": 0.0, "dur": 0, "state": "DORMANT", "alert": true, "reasons": ["결석 발생 (지연 지표)"]}, {"week": 17, "gym": 0, "alt": 0, "div": 0.0, "dur": 0, "state": "DORMANT", "alert": true, "reasons": ["결석 발생 (지연 지표)"]}, {"week": 18, "gym": 0, "alt": 0, "div": 0.0, "dur": 0, "state": "DORMANT", "alert": true, "reasons": ["결석 발생 (지연 지표)"]}, {"week": 19, "gym": 2, "alt": 0, "div": 2.0, "dur": 43, "state": "RETURNING", "alert": false, "reasons": []}, {"week": 20, "gym": 3, "alt": 0, "div": 3.0, "dur": 54, "state": "RETURNING", "alert": false, "reasons": []}, {"week": 21, "gym": 3, "alt": 0, "div": 3.7, "dur": 55, "state": "RETURNING", "alert": false, "reasons": []}, {"week": 22, "gym": 4, "alt": 0, "div": 4.8, "dur": 70, "state": "RETURNING", "alert": false, "reasons": []}, {"week": 23, "gym": 4, "alt": 0, "div": 5.0, "dur": 79, "state": "ACTIVE", "alert": false, "reasons": []}, {"week": 24, "gym": 4, "alt": 0, "div": 4.5, "dur": 72, "state": "ACTIVE", "alert": false, "reasons": []}],
-  B: [{"week": 1, "gym": 4, "alt": 0, "div": 5.2, "dur": 81, "state": "ACTIVE", "alert": false, "reasons": []}, {"week": 2, "gym": 4, "alt": 0, "div": 5.0, "dur": 79, "state": "ACTIVE", "alert": false, "reasons": []}, {"week": 3, "gym": 4, "alt": 0, "div": 5.5, "dur": 80, "state": "ACTIVE", "alert": false, "reasons": []}, {"week": 4, "gym": 4, "alt": 0, "div": 5.5, "dur": 79, "state": "ACTIVE", "alert": false, "reasons": []}, {"week": 5, "gym": 4, "alt": 0, "div": 5.5, "dur": 77, "state": "ACTIVE", "alert": false, "reasons": []}, {"week": 6, "gym": 4, "alt": 0, "div": 5.8, "dur": 78, "state": "ACTIVE", "alert": false, "reasons": []}, {"week": 7, "gym": 4, "alt": 0, "div": 3.2, "dur": 72, "state": "ACTIVE", "alert": true, "reasons": ["종목 단순화 추세 (-0.65개/주)"]}, {"week": 8, "gym": 4, "alt": 0, "div": 3.2, "dur": 67, "state": "DECLINING", "alert": true, "reasons": ["종목 단순화 추세 (-0.93개/주)"]}, {"week": 9, "gym": 3, "alt": 0, "div": 2.7, "dur": 50, "state": "DECLINING", "alert": true, "reasons": ["종목 단순화 추세 (-0.93개/주)", "세션 시간 감소 추세 (-8.8분/주)"]}, {"week": 10, "gym": 3, "alt": 2, "div": 2.0, "dur": 54, "state": "PARALLEL", "alert": true, "reasons": ["종목 단순화 추세 (-0.43개/주)", "세션 시간 감소 추세 (-7.1분/주)"]}, {"week": 11, "gym": 2, "alt": 2, "div": 1.5, "dur": 43, "state": "PARALLEL", "alert": true, "reasons": ["종목 단순화 추세 (-0.59개/주)", "세션 시간 감소 추세 (-7.0분/주)"]}, {"week": 12, "gym": 1, "alt": 2, "div": 1.0, "dur": 33, "state": "PARALLEL", "alert": true, "reasons": ["종목 단순화 추세 (-0.55개/주)", "세션 시간 감소 추세 (-6.2분/주)"]}, {"week": 13, "gym": 1, "alt": 2, "div": 2.0, "dur": 43, "state": "PARALLEL", "alert": false, "reasons": []}, {"week": 14, "gym": 1, "alt": 2, "div": 2.0, "dur": 34, "state": "PARALLEL", "alert": false, "reasons": []}, {"week": 15, "gym": 1, "alt": 2, "div": 2.0, "dur": 39, "state": "PARALLEL", "alert": false, "reasons": []}, {"week": 16, "gym": 1, "alt": 2, "div": 1.0, "dur": 31, "state": "PARALLEL", "alert": true, "reasons": ["종목 단순화 추세 (-0.30개/주)"]}, {"week": 17, "gym": 1, "alt": 2, "div": 1.0, "dur": 38, "state": "PARALLEL", "alert": true, "reasons": ["종목 단순화 추세 (-0.40개/주)"]}, {"week": 18, "gym": 1, "alt": 2, "div": 1.0, "dur": 35, "state": "PARALLEL", "alert": true, "reasons": ["종목 단순화 추세 (-0.30개/주)"]}, {"week": 19, "gym": 2, "alt": 0, "div": 2.5, "dur": 44, "state": "PARALLEL", "alert": false, "reasons": []}, {"week": 20, "gym": 3, "alt": 0, "div": 3.7, "dur": 56, "state": "PARALLEL", "alert": false, "reasons": []}, {"week": 21, "gym": 3, "alt": 0, "div": 3.3, "dur": 55, "state": "PARALLEL", "alert": false, "reasons": []}, {"week": 22, "gym": 4, "alt": 0, "div": 5.8, "dur": 79, "state": "ACTIVE", "alert": false, "reasons": []}, {"week": 23, "gym": 4, "alt": 0, "div": 5.5, "dur": 70, "state": "ACTIVE", "alert": false, "reasons": []}, {"week": 24, "gym": 4, "alt": 0, "div": 4.5, "dur": 76, "state": "ACTIVE", "alert": false, "reasons": []}]
-};
-const WORLDLINE_INFO = {
-  A: {label:"세계선 A · 완전 휴면", desc:"열정저하 → 결석 → 완전 휴면 → 복귀"},
-  B: {label:"세계선 B · 병행 페일오버", desc:"열정저하 → 수영 병행(PARALLEL) → 헬스 복귀"}
-};
-let currentLine = "A";
+      const STATES = {
+        ACTIVE: {
+          ko: "활성기",
+          color: "var(--active)",
+          do: "모니터링만. 개입하지 않는다.",
+          never: "불필요한 조언으로 마찰 만들기",
+        },
+        DECLINING: {
+          ko: "열정저하기",
+          color: "var(--declining)",
+          do: "'좋아하는 운동 풀'에서 페일오버 제안 (R8). 사람 요소(동호회) 언급. 헬스 축소를 실패가 아닌 전략으로 프레임.",
+          never: "더 열심히 하라고 압박 / 죄책감 유발",
+        },
+        PARALLEL: {
+          ko: "병행기",
+          color: "var(--parallel)",
+          do: "헬스는 최소 유지 용량: 3대 또는 좋아하는 부위, 그날그날 로테이션 (R7). 목표는 진전이 아니라 끊김 방지. 병행종목에서 리스크 신호·환경 제약이 감지되면 즉시 웨이트 복귀 옵션 제시 (R20/R21).",
+          never:
+            "프로그레션 요구 / 볼륨 증가 제안 / 명확한 이탈 신호를 지켜보자며 미루기",
+        },
+        DORMANT: {
+          ko: "휴면기",
+          color: "var(--dormant)",
+          do: "먼저 말 걸지 않는다. 사용자가 오면 죄책감 없이 응대. 쉼은 장애가 아니라 상태다.",
+          never: "'돌아오세요' 류 리텐션 메시지",
+        },
+        RETURNING: {
+          ko: "복귀기",
+          color: "var(--returning)",
+          do: "맨몸운동부터. 옛 기록 앵커링 금지 (R9). '한번 갔던 길은 생각보다 쉽다' (R10). 이 구간의 높은 열정을 인정하고 활용.",
+          never: "쉬기 전 중량과 비교 / 하락률 언급",
+        },
+      };
 
-const STATES = {
-  ACTIVE:    {ko:"활성기",   color:"var(--active)",
-    do:"모니터링만. 개입하지 않는다.", never:"불필요한 조언으로 마찰 만들기"},
-  DECLINING: {ko:"열정저하기", color:"var(--declining)",
-    do:"'좋아하는 운동 풀'에서 페일오버 제안 (R8). 사람 요소(동호회) 언급. 헬스 축소를 실패가 아닌 전략으로 프레임.",
-    never:"더 열심히 하라고 압박 / 죄책감 유발"},
-  PARALLEL:  {ko:"병행기",   color:"var(--parallel)",
-    do:"헬스는 최소 유지 용량: 3대 또는 좋아하는 부위, 그날그날 로테이션 (R7). 목표는 진전이 아니라 끊김 방지. 병행종목에서 리스크 신호·환경 제약이 감지되면 즉시 웨이트 복귀 옵션 제시 (R20/R21).",
-    never:"프로그레션 요구 / 볼륨 증가 제안 / 명확한 이탈 신호를 지켜보자며 미루기"},
-  DORMANT:   {ko:"휴면기",   color:"var(--dormant)",
-    do:"먼저 말 걸지 않는다. 사용자가 오면 죄책감 없이 응대. 쉼은 장애가 아니라 상태다.",
-    never:"'돌아오세요' 류 리텐션 메시지"},
-  RETURNING: {ko:"복귀기",   color:"var(--returning)",
-    do:"맨몸운동부터. 옛 기록 앵커링 금지 (R9). '한번 갔던 길은 생각보다 쉽다' (R10). 이 구간의 높은 열정을 인정하고 활용.",
-    never:"쉬기 전 중량과 비교 / 하락률 언급"},
-};
-
-// ▼▼▼ 아래 세 블록은 build_demo.py가 dialogue_layer.py에서 생성한다. 손으로 고치지 말 것 ▼▼▼
-// AUTOGEN:RULES:BEGIN
-const RULES = `[검증된 판단 규칙 — 출처: 20년차 리프터 효진 인터뷰 (hyojin_direct)]
+      // ▼▼▼ 아래 세 블록은 build_demo.py가 dialogue_layer.py에서 생성한다. 손으로 고치지 말 것 ▼▼▼
+      // AUTOGEN:RULES:BEGIN
+      const RULES = `[검증된 판단 규칙 — 출처: 20년차 리프터 효진 인터뷰 (hyojin_direct)]
 R7 최소 유지 용량: 열정 저하기의 헬스는 '3대운동 또는 좋아하는 부위를 그날그날 로테이션'으로 결정 비용을 최소화해 유지한다. 목표는 진전이 아니라 끊기지 않음.
 R8 페일오버는 최적화가 아니라 좋아함: 대체 운동은 크로스트레이닝 효율로 고르지 않는다. 사용자가 미리 등록한 '좋아하는 운동 풀'에서 고른다. 동호회 등 사람 요소가 열정의 연료.
 R9 복귀는 맨몸부터: 복귀 시 옛 기록의 %가 아니라 맨몸운동에서 시작한다. '맨몸이 이렇게 힘들다니'라는 충격도 정상 과정으로 수용시킨다.
 R10 한번 갔던 길: 재상승은 처음보다 빠르다. 복귀기를 재활이 아니라 '열정적이고 재밌는 구간'으로 리프레임한다.
 핵심 철학: 이 코치의 SLO는 1RM이 아니라 uptime이다. 기록을 죽이는 유일한 변수는 그만두는 것.`;
-// AUTOGEN:RULES:END
+      // AUTOGEN:RULES:END
 
-// AUTOGEN:GUARDRAIL:BEGIN
-const GUARDRAIL = `[안전 가드레일 — 출처: 임상 표준 (reference)]
+      // AUTOGEN:GUARDRAIL:BEGIN
+      const GUARDRAIL = `[안전 가드레일 — 출처: 임상 표준 (reference)]
 사용자 메시지에 통증 신호(허리/관절 통증, 저림, 뻐근함 등)가 나오면 즉시 코칭을 중단하고 통증 상담으로 전환한다.
 다음 중 하나라도 해당하면 '지금 당장' 정형외과/신경외과 진료를 강력 권고: 엉덩이·다리·발가락 방사통(저림), 기침·재채기 시 허리 울림, 10분 이상 앉기 힘든 통증, 발가락 근력 약화·발끌림.
 통증 원인 규명 전까지 해당 부위 고중량 운동 중단을 안내한다. 진단하지 말 것 — 가능성 언급과 병원 안내까지만.`;
-// AUTOGEN:GUARDRAIL:END
+      // AUTOGEN:GUARDRAIL:END
 
-// AUTOGEN:PARALLEL_TRIGGERS:BEGIN
-const PARALLEL_TRIGGERS = `[PARALLEL 이탈 트리거 감지 지침 — 출처: hyojin_direct, 2026-07 병행기 전이 세션]
+      // AUTOGEN:PARALLEL_TRIGGERS:BEGIN
+      const PARALLEL_TRIGGERS = `[PARALLEL 이탈 트리거 감지 지침 — 출처: hyojin_direct, 2026-07 병행기 전이 세션]
 현재 상태가 병행기(PARALLEL)일 때만 적용. 사용자 발화에서 아래 두 신호를 감지하라 — 로그로는 안 잡히므로 대화가 유일한 감지 수단이다.
 - risk_signal: 병행종목 수행 중 몸이 보내는 명확한 경고(통증·과부하) → 즉시 반응. 지켜보지 않는다 (R15의 모호한 신호와 다름 — 이건 명확한 신호) (예: 배드민턴 반복 점프 → 무릎 무리)
 - env_constraint: 병행종목 수행 자체가 물리적으로 불가능해지는 환경(계절·시간·날씨) → 환경이 막히는 즉시 웨이트로 자동 전환 제안 (예: 로드사이클 — 우천·혹서·혹한, 계절·퇴근 후 시간 제약)
@@ -213,95 +1081,138 @@ G5. 환경 제약형 (env_constraint) — 예: "요즘 비도 오고 너무 더�
 
 주의: 통증이 RED_FLAGS(방사통·기침 시 허리 울림·10분 좌식 곤란·발가락 근력 약화) 수준이면
 G4보다 안전 가드레일(G2)이 우선한다 — R20은 안전 절차를 대체하지 않는다.`;
-// AUTOGEN:PARALLEL_TRIGGERS:END
-// ▲▲▲ AUTOGEN 블록 끝 ▲▲▲
+      // AUTOGEN:PARALLEL_TRIGGERS:END
+      // ▲▲▲ AUTOGEN 블록 끝 ▲▲▲
 
-// ================= UI =================
-let sel = 8;  // 기본 선택: 열정저하기 진입 주
-let history = [];
+      // ================= UI =================
+      let sel = 8; // 기본 선택: 열정저하기 진입 주
+      let history = [];
 
-function render(){
-  const strip = document.getElementById("strip");
-  const bars = document.getElementById("bars");
-  strip.innerHTML = ""; bars.innerHTML = "";
-  const WEEKS = WORLDLINES[currentLine];
-  const maxDur = Math.max(...WEEKS.map(w=>w.dur));
-  WEEKS.forEach(w=>{
-    const s = document.createElement("div");
-    s.className = "seg" + (w.week===sel?" sel":"");
-    s.style.background = STATES[w.state].color;
-    s.style.opacity = w.state==="DORMANT" ? .45 : .9;
-    s.innerHTML = (w.alert?'<span class="al"></span>':'') + `<span class="wk">${w.week}</span>`;
-    s.onclick = ()=>{ sel=w.week; history=[]; document.getElementById("msgs").innerHTML="";
-      sysMsg(`${w.week}주차로 이동 — 상태: ${STATES[w.state].ko}. 대화를 새로 시작합니다.`); render(); };
-    strip.appendChild(s);
-    const b = document.createElement("div");
-    b.className="b"; b.style.height = Math.max(2, w.dur/maxDur*34)+"px";
-    if(w.week===sel) b.style.background="var(--text)";
-    bars.appendChild(b);
-  });
-  const lg = document.getElementById("legend");
-  lg.innerHTML = Object.values(STATES).map(s=>
-    `<span><span class="dot" style="background:${s.color}"></span>${s.ko}</span>`).join("");
+      function render() {
+        const strip = document.getElementById("strip");
+        const bars = document.getElementById("bars");
+        strip.innerHTML = "";
+        bars.innerHTML = "";
+        const WEEKS = WORLDLINES[currentLine];
+        const maxDur = Math.max(...WEEKS.map((w) => w.dur));
+        WEEKS.forEach((w) => {
+          const s = document.createElement("div");
+          s.className = "seg" + (w.week === sel ? " sel" : "");
+          s.style.background = STATES[w.state].color;
+          s.style.opacity = w.state === "DORMANT" ? 0.45 : 0.9;
+          s.innerHTML =
+            (w.alert ? '<span class="al"></span>' : "") +
+            `<span class="wk">${w.week}</span>`;
+          s.onclick = () => {
+            sel = w.week;
+            history = [];
+            document.getElementById("msgs").innerHTML = "";
+            sysMsg(
+              `${w.week}주차로 이동 — 상태: ${STATES[w.state].ko}. 대화를 새로 시작합니다.`,
+            );
+            render();
+          };
+          strip.appendChild(s);
+          const b = document.createElement("div");
+          b.className = "b";
+          b.style.height = Math.max(2, (w.dur / maxDur) * 34) + "px";
+          if (w.week === sel) b.style.background = "var(--text)";
+          bars.appendChild(b);
+        });
+        const lg = document.getElementById("legend");
+        lg.innerHTML = Object.values(STATES)
+          .map(
+            (s) =>
+              `<span><span class="dot" style="background:${s.color}"></span>${s.ko}</span>`,
+          )
+          .join("");
 
-  document.getElementById("line-A").style.cssText = currentLine==="A" ? "border-color:var(--text);color:var(--text)" : "";
-  document.getElementById("line-B").style.cssText = currentLine==="B" ? "border-color:var(--text);color:var(--text)" : "";
+        document.getElementById("line-A").style.cssText =
+          currentLine === "A"
+            ? "border-color:var(--text);color:var(--text)"
+            : "";
+        document.getElementById("line-B").style.cssText =
+          currentLine === "B"
+            ? "border-color:var(--text);color:var(--text)"
+            : "";
 
-  const w = WEEKS.find(x=>x.week===sel), st = STATES[w.state];
-  document.getElementById("wklabel").textContent = `week ${w.week}`;
-  document.getElementById("badge").innerHTML =
-    `<span class="statebadge" style="background:${st.color}22;color:${st.color};border:1px solid ${st.color}55">${st.ko} · ${w.state}</span>`;
-  document.getElementById("t-gym").textContent = w.gym + "회/주";
-  document.getElementById("t-div").textContent = w.div.toFixed(1) + "개";
-  document.getElementById("t-dur").textContent = w.dur + "분";
-  const r = document.getElementById("t-reasons");
-  if(w.reasons.length){ r.className="reasons"; r.innerHTML = "⚠ " + w.reasons.join("<br>⚠ "); }
-  else { r.className="reasons ok"; r.textContent = "✓ 열화 신호 없음"; }
-  document.getElementById("p-do").textContent = st.do;
-  document.getElementById("p-never").textContent = st.never;
-}
+        const w = WEEKS.find((x) => x.week === sel),
+          st = STATES[w.state];
+        document.getElementById("wklabel").textContent = `week ${w.week}`;
+        document.getElementById("badge").innerHTML =
+          `<span class="statebadge" style="background:${st.color}22;color:${st.color};border:1px solid ${st.color}55">${st.ko} · ${w.state}</span>`;
+        document.getElementById("t-gym").textContent = w.gym + "회/주";
+        document.getElementById("t-div").textContent = w.div.toFixed(1) + "개";
+        document.getElementById("t-dur").textContent = w.dur + "분";
+        const r = document.getElementById("t-reasons");
+        if (w.reasons.length) {
+          r.className = "reasons";
+          r.innerHTML = "⚠ " + w.reasons.join("<br>⚠ ");
+        } else {
+          r.className = "reasons ok";
+          r.textContent = "✓ 열화 신호 없음";
+        }
+        document.getElementById("p-do").textContent = st.do;
+        document.getElementById("p-never").textContent = st.never;
+      }
 
-function addMsg(role, text, tag){
-  const m = document.createElement("div");
-  m.className = "msg " + role;
-  m.innerHTML = (tag?`<span class="tag">${tag}</span>`:"") + text.replace(/</g,"&lt;");
-  document.getElementById("msgs").appendChild(m);
-  m.scrollIntoView({behavior:"smooth"});
-}
-function sysMsg(t){ addMsg("sys", t); }
+      function addMsg(role, text, tag) {
+        const m = document.createElement("div");
+        m.className = "msg " + role;
+        m.innerHTML =
+          (tag ? `<span class="tag">${tag}</span>` : "") +
+          text.replace(/</g, "&lt;");
+        document.getElementById("msgs").appendChild(m);
+        m.scrollIntoView({ behavior: "smooth" });
+      }
+      function sysMsg(t) {
+        addMsg("sys", t);
+      }
 
-function preset(t){ document.getElementById("input").value = t; send(); }
+      function preset(t) {
+        document.getElementById("input").value = t;
+        send();
+      }
 
-function switchLine(line){
-  currentLine = line; sel = (line==="A") ? 8 : 12;
-  history = []; document.getElementById("msgs").innerHTML = "";
-  sysMsg(`${WORLDLINE_INFO[line].label} 로드 — ${WORLDLINE_INFO[line].desc}`);
-  render();
-}
+      function switchLine(line) {
+        currentLine = line;
+        sel = line === "A" ? 8 : 12;
+        history = [];
+        document.getElementById("msgs").innerHTML = "";
+        sysMsg(
+          `${WORLDLINE_INFO[line].label} 로드 — ${WORLDLINE_INFO[line].desc}`,
+        );
+        render();
+      }
 
-function presetParallel(t){
-  // 병행기 트리거 프리셋: 병행기가 존재하는 세계선 B로 전환 + 병행기 주차 선택 후 전송
-  const inParallel = currentLine === "B" &&
-    STATES[WORLDLINES[currentLine].find(x=>x.week===sel).state].ko === "병행기";
-  if(!inParallel){
-    currentLine = "B"; sel = 12;
-    history = []; document.getElementById("msgs").innerHTML = "";
-    sysMsg(`${WORLDLINE_INFO.B.label}로 전환 — 병행기(12주차) 선택`);
-    render();
-  }
-  preset(t);
-}
+      function presetParallel(t) {
+        // 병행기 트리거 프리셋: 병행기가 존재하는 세계선 B로 전환 + 병행기 주차 선택 후 전송
+        const inParallel =
+          currentLine === "B" &&
+          STATES[WORLDLINES[currentLine].find((x) => x.week === sel).state]
+            .ko === "병행기";
+        if (!inParallel) {
+          currentLine = "B";
+          sel = 12;
+          history = [];
+          document.getElementById("msgs").innerHTML = "";
+          sysMsg(`${WORLDLINE_INFO.B.label}로 전환 — 병행기(12주차) 선택`);
+          render();
+        }
+        preset(t);
+      }
 
-function buildSystem(){
-  const WEEKS = WORLDLINES[currentLine];
-  const w = WEEKS.find(x=>x.week===sel), st = STATES[w.state];
-  return `너는 '지속 코치' — 20년차 리프터의 셀프 코칭 판단 체계를 구조화한 에이전트다.
+      function buildSystem() {
+        const WEEKS = WORLDLINES[currentLine];
+        const w = WEEKS.find((x) => x.week === sel),
+          st = STATES[w.state];
+        return `너는 '지속 코치' — 20년차 리프터의 셀프 코칭 판단 체계를 구조화한 에이전트다.
 판단은 이미 결정적 코어가 내렸다. 너의 역할은 그 판단을 '표현'하는 것뿐이다. 코어의 판단을 재해석하거나 뒤집지 마라.
 
 [코어가 내린 현재 판단]
 - 현재 상태: ${st.ko} (${w.state})
 - 이번 주 신호: 헬스 ${w.gym}회, 세션당 종목 ${w.div}개, 평균 ${w.dur}분
-- 감지된 열화 신호: ${w.reasons.length? w.reasons.join(", ") : "없음"}
+- 감지된 열화 신호: ${w.reasons.length ? w.reasons.join(", ") : "없음"}
 - 개입 정책 DO: ${st.do}
 - 개입 정책 NEVER (절대 금지): ${st.never}
 
@@ -310,42 +1221,56 @@ ${RULES}
 ${GUARDRAIL}
 ${w.state === "PARALLEL" ? "\n" + PARALLEL_TRIGGERS + "\n" : ""}
 [말투] 한국어. 담백하고 짧게 (2~5문장). 이모지 금지. 죄책감 유발 표현 금지. 전문용어(페일오버, uptime 등)는 상대가 엔지니어이므로 자연스럽게 써도 좋다.`;
-}
+      }
 
-async function send(){
-  const input = document.getElementById("input");
-  const text = input.value.trim();
-  if(!text) return;
-  input.value = "";
-  addMsg("user", text);
-  history.push({role:"user", content:text});
-  const btn = document.getElementById("sendbtn");
-  btn.disabled = true; btn.textContent = "...";
-  try{
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({
-        model:"claude-sonnet-4-6",
-        max_tokens:1000,
-        system: buildSystem(),
-        messages: history
-      })
-    });
-    const data = await res.json();
-    const reply = (data.content||[]).filter(c=>c.type==="text").map(c=>c.text).join("\n") || "(응답 없음)";
-    history.push({role:"assistant", content:reply});
-    const WEEKS = WORLDLINES[currentLine];
-    const w = WEEKS.find(x=>x.week===sel);
-    addMsg("coach", reply, `judgment: ${w.state} · policy-bound`);
-  }catch(e){
-    addMsg("sys", "API 오류: " + e.message);
-  }
-  btn.disabled = false; btn.textContent = "전송";
-}
+      // 상태별 기본 코칭 메시지
+      const STATE_REPLIES = {
+        ACTIVE:
+          "이번 주도 꾸준히 잘 유지하고 계시네요. 현재 활성기 상태로, 지금의 페이스를 유지하는 것이 중요합니다. 갑작스러운 과도한 증량보다는 꾸준함이 장기적 성과에 더 좋습니다.",
+        DECLINING:
+          "최근 2주간 운동 빈도와 지속시간이 줄어드는 열화 신호가 감지되었습니다. 현재 열정저하기 상태로, 너무 부담스럽게 느끼지 마세요. 운동 강도를 잠시 낮춰서라도 출석률을 회복하는 것이 우선입니다.",
+        PARALLEL:
+          "현재 병행기 상태입니다. 본 운동 외에 가벼운 대체 활동(산책, 스트레칭)을 병행해서 운동과의 연결을 완전히 끊지 않는 것이 중요합니다. 병행 페일오버 전략으로 회복을 준비하세요.",
+        DORMANT:
+          "휴면기에 진입했습니다. 죄책감을 갖지 마세요. 모든 사람에게 휴식기는 필요합니다. 복귀를 강요하기보다는, 언제든 다시 시작할 수 있다는 마음의 문을 열어두는 것이 중요합니다.",
+        RETURNING:
+          "복귀기에 접어들었습니다. 병행 활동에서 본 운동으로 서서히 전환하면서, 첫 주부터 너무 많은 부담을 지지 않는 것이 핵심입니다. 하루 30분만이라도 꾸준히 나가는 것이 성공의 열쇠입니다.",
+      };
 
-render();
-sysMsg("8주차(열정저하기 진입) 시점입니다. 프리셋 버튼이나 자유 입력으로 에이전트를 테스트하세요.");
-</script>
-</body>
+      async function send() {
+        const input = document.getElementById("input");
+        const text = input.value.trim();
+        if (!text) return;
+        input.value = "";
+        addMsg("user", text);
+        history.push({ role: "user", content: text });
+        const btn = document.getElementById("sendbtn");
+        btn.disabled = true;
+        btn.textContent = "...";
+
+        // 현재 상태에 맞는 로컬 코칭 메시지 사용
+        const WEEKS = WORLDLINES[currentLine];
+        const w = WEEKS.find((x) => x.week === sel);
+        const reply =
+          STATE_REPLIES[w.state] || "현재 상태에 맞는 코칭을 준비중입니다.";
+
+        // 시뮬레이션 지연 추가
+        setTimeout(() => {
+          history.push({ role: "assistant", content: reply });
+          addMsg(
+            "coach",
+            reply,
+            `judgment: ${w.state} · policy-bound (로컬 모드)`,
+          );
+          btn.disabled = false;
+          btn.textContent = "전송";
+        }, 800);
+      }
+
+      render();
+      sysMsg(
+        "8주차(열정저하기 진입) 시점입니다. 프리셋 버튼이나 자유 입력으로 에이전트를 테스트하세요.",
+      );
+    </script>
+  </body>
 </html>
