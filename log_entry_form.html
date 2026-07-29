@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>지속 코치 v0.1 — 로그 입력</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+:root{
+  --ink:#131920; --panel:#1B232E; --panel2:#161D26; --line:#2A3542;
+  --text:#E6EDF3; --muted:#8899AA; --dim:#5A6675;
+  --active:#43B58C; --declining:#E3A63C; --parallel:#5D8DE8;
+  --dormant:#5A6675; --returning:#D96A8B;
+  --mono:'IBM Plex Mono',monospace; --sans:'Noto Sans KR',-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--ink);color:var(--text);font-family:var(--sans);min-height:100vh;padding:28px 20px 60px}
+.wrap{max-width:980px;margin:0 auto}
+
+header{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;
+  border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:22px}
+.brand{font-family:var(--mono);font-size:20px;font-weight:600;letter-spacing:-.5px}
+.brand .v{color:var(--muted);font-size:13px;font-weight:400;margin-left:8px}
+.slo{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.slo b{color:var(--active);font-weight:500}
+
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;color:var(--muted);
+  text-transform:uppercase;margin-bottom:10px}
+
+/* ---- 시그니처: 입력할수록 쌓이는 실시간 스트립 ---- */
+.strip{display:flex;gap:3px;min-height:34px;margin-bottom:6px;flex-wrap:wrap}
+.strip .empty{font-family:var(--mono);font-size:12px;color:var(--dim);padding:8px 0}
+.chip{width:14px;height:28px;border-radius:3px;position:relative;cursor:default}
+.chip.gym{background:var(--active)}
+.chip.alt{background:var(--parallel)}
+.chip .tip{position:absolute;bottom:34px;left:50%;transform:translateX(-50%);
+  background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 9px;
+  font-family:var(--mono);font-size:10.5px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .12s;z-index:5}
+.chip:hover .tip{opacity:1}
+.striplabel{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:6px;margin-bottom:24px}
+
+.cols{display:grid;grid-template-columns:340px 1fr;gap:18px}
+@media(max-width:760px){.cols{grid-template-columns:1fr}}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:18px}
+.panel h3{font-family:var(--mono);font-size:12px;letter-spacing:1px;color:var(--muted);
+  text-transform:uppercase;margin-bottom:14px;font-weight:500}
+
+label{display:block;font-family:var(--mono);font-size:11px;color:var(--muted);margin:12px 0 6px}
+label:first-child{margin-top:0}
+input[type=date],input[type=number],input[type=text],select{
+  width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+  color:var(--text);padding:10px 12px;font-size:14px;font-family:var(--sans);outline:none}
+input:focus,select:focus{border-color:var(--muted)}
+.hint{font-size:11px;color:var(--dim);margin-top:5px;line-height:1.5}
+
+.radiorow{display:flex;gap:8px;margin-top:2px}
+.radiorow label{flex:1;margin:0;display:flex;align-items:center;justify-content:center;gap:6px;
+  background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:9px;cursor:pointer;
+  font-family:var(--sans);font-size:13px;color:var(--muted);transition:all .12s}
+.radiorow input{width:auto;margin:0}
+.radiorow label.active{border-color:var(--active);color:var(--text)}
+
+.btn{width:100%;background:var(--active);color:#0B1210;border:none;border-radius:8px;padding:12px;
+  font-weight:700;font-size:14px;cursor:pointer;font-family:var(--sans);margin-top:16px}
+.btn.secondary{background:none;border:1px solid var(--line);color:var(--text)}
+.btn.small{width:auto;padding:8px 14px;font-size:12.5px;margin-top:0}
+.btnrow{display:flex;gap:8px;margin-top:16px}
+.btnrow .btn{margin-top:0}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.5px;color:var(--muted);
+  text-transform:uppercase;text-align:left;padding:8px 6px;border-bottom:1px solid var(--line)}
+td{padding:9px 6px;border-bottom:1px dashed var(--line);font-family:var(--mono);font-size:12.5px}
+td.ex{font-family:var(--sans);font-size:13px}
+.kindtag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10.5px;font-family:var(--mono)}
+.kindtag.gym{background:rgba(67,181,140,.15);color:var(--active)}
+.kindtag.alt{background:rgba(93,141,232,.15);color:var(--parallel)}
+.del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;line-height:1;padding:2px 6px}
+.del:hover{color:var(--returning)}
+.emptystate{color:var(--dim);font-size:13px;padding:20px 4px;text-align:center}
+
+.fileinput{position:relative;overflow:hidden;display:inline-block}
+.fileinput input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+
+.footer{margin-top:26px;font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.8}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--panel);
+  border:1px solid var(--line);border-radius:8px;padding:10px 18px;font-size:13px;
+  opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">지속 코치 <span class="v">v0.1 — 로그 입력</span></div>
+    <div class="slo">목표는 1RM이 아니라 <b>uptime</b></div>
+  </header>
+
+  <div class="eyebrow">이번 세션에 입력한 기록 (실시간)</div>
+  <div class="strip" id="strip"><span class="empty">아직 입력한 기록이 없습니다 — 아래에서 첫 기록을 추가해보세요</span></div>
+  <div class="striplabel"><span style="color:var(--active)">■</span> 헬스(gym) &nbsp; <span style="color:var(--parallel)">■</span> 다른 운동(alt)</div>
+
+  <div class="cols">
+    <div>
+      <div class="panel">
+        <h3>운동 기록 추가</h3>
+        <label for="f-date">날짜</label>
+        <input type="date" id="f-date">
+
+        <label>종류</label>
+        <div class="radiorow">
+          <label id="lbl-gym"><input type="radio" name="kind" value="gym" checked onchange="updateKindUI()"> 헬스</label>
+          <label id="lbl-alt"><input type="radio" name="kind" value="alt" onchange="updateKindUI()"> 다른 운동</label>
+        </div>
+
+        <label for="f-ex">종목 (쉼표로 구분)</label>
+        <input type="text" id="f-ex" placeholder="예: 스쿼트, 벤치, 데드">
+        <div class="hint">여러 종목이면 쉼표(,)로 구분해서 입력하세요. 다른 운동이면 종목 하나만(예: 수영) 적어도 됩니다.</div>
+
+        <label for="f-dur">시간 (분)</label>
+        <input type="number" id="f-dur" min="1" placeholder="예: 60">
+
+        <button class="btn" onclick="addEntry()">기록 추가</button>
+      </div>
+
+      <div class="panel">
+        <h3>대화 메모 (선택)</h3>
+        <div class="hint" style="margin-top:0;margin-bottom:12px">"요즘 무릎이 좀 안 좋아요" 같은 그날의 한마디를 남겨두면, 나중에 에이전트가 병행기 전이 신호(R20/R21)를 판단하는 데 씁니다.</div>
+        <label for="c-date">날짜</label>
+        <input type="date" id="c-date">
+        <label for="c-text">메모</label>
+        <input type="text" id="c-text" placeholder="예: 요즘 배드민턴 치는데 무릎이 좀 안 좋아졌어요">
+        <button class="btn secondary" onclick="addConvEntry()">메모 추가</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel">
+        <h3>운동 기록 목록 (<span id="cnt-ex">0</span>건)</h3>
+        <div class="btnrow" style="margin-top:0;margin-bottom:14px">
+          <span class="fileinput btn secondary small">기존 CSV 불러오기<input type="file" accept=".csv" onchange="loadCSV(event)"></span>
+          <button class="btn small" style="background:var(--active)" onclick="downloadCSV()">CSV 다운로드</button>
+        </div>
+        <div id="ex-table"></div>
+      </div>
+
+      <div class="panel">
+        <h3>대화 메모 목록 (<span id="cnt-conv">0</span>건)</h3>
+        <div class="btnrow" style="margin-top:0;margin-bottom:14px">
+          <span class="fileinput btn secondary small">기존 JSONL 불러오기<input type="file" accept=".jsonl,.txt" onchange="loadJSONL(event)"></span>
+          <button class="btn small" style="background:var(--parallel);color:#0B1210" onclick="downloadJSONL()">JSONL 다운로드</button>
+        </div>
+        <div id="conv-table"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <b>스키마:</b> CSV = <code>date,kind,exercises,duration_min</code> (exercises는 세미콜론 구분) · JSONL = 한 줄에 <code>{"date","text"}</code> 하나<br>
+    <b>호환:</b> 여기서 내보낸 파일은 <code>data_adapter.py</code>의 CSVAdapter / ConversationLogAdapter가 그대로 읽습니다.<br>
+    <b>주의:</b> 이 페이지를 닫으면 입력 내용이 사라집니다 — 작업을 마치면 꼭 다운로드해서 보관하고, 다음에 이어서 입력할 땐 "불러오기"로 이어가세요.
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let entries = [];      // {date, kind, exercises:[...], duration}
+let convEntries = [];  // {date, text}
+
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+document.getElementById("f-date").value = todayStr();
+document.getElementById("c-date").value = todayStr();
+
+function updateKindUI(){
+  const gym = document.querySelector('input[name=kind]:checked').value === "gym";
+  document.getElementById("lbl-gym").classList.toggle("active", gym);
+  document.getElementById("lbl-alt").classList.toggle("active", !gym);
+}
+updateKindUI();
+
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"), 1800);
+}
+
+function addEntry(){
+  const date = document.getElementById("f-date").value;
+  const kind = document.querySelector('input[name=kind]:checked').value;
+  const exRaw = document.getElementById("f-ex").value.trim();
+  const dur = parseFloat(document.getElementById("f-dur").value);
+
+  if(!date){ toast("날짜를 입력하세요"); return; }
+  if(!exRaw){ toast("종목을 입력하세요"); return; }
+  if(!dur || dur <= 0){ toast("운동 시간(분)을 입력하세요"); return; }
+
+  const exercises = exRaw.split(",").map(s=>s.trim()).filter(Boolean);
+  entries.push({date, kind, exercises, duration: dur});
+  entries.sort((a,b)=> a.date.localeCompare(b.date));
+
+  document.getElementById("f-ex").value = "";
+  document.getElementById("f-dur").value = "";
+  render();
+  toast("기록이 추가됐습니다");
+}
+
+function addConvEntry(){
+  const date = document.getElementById("c-date").value;
+  const text = document.getElementById("c-text").value.trim();
+  if(!date){ toast("날짜를 입력하세요"); return; }
+  if(!text){ toast("메모 내용을 입력하세요"); return; }
+  convEntries.push({date, text});
+  convEntries.sort((a,b)=> a.date.localeCompare(b.date));
+  document.getElementById("c-text").value = "";
+  render();
+  toast("메모가 추가됐습니다");
+}
+
+function removeEntry(i){ entries.splice(i,1); render(); }
+function removeConv(i){ convEntries.splice(i,1); render(); }
+
+function render(){
+  // 시그니처 스트립
+  const strip = document.getElementById("strip");
+  if(entries.length === 0){
+    strip.innerHTML = '<span class="empty">아직 입력한 기록이 없습니다 — 아래에서 첫 기록을 추가해보세요</span>';
+  }else{
+    strip.innerHTML = entries.map(e=>
+      `<div class="chip ${e.kind}"><span class="tip">${e.date} · ${e.exercises.join(", ")} · ${e.duration}분</span></div>`
+    ).join("");
+  }
+
+  document.getElementById("cnt-ex").textContent = entries.length;
+  document.getElementById("cnt-conv").textContent = convEntries.length;
+
+  const exTable = document.getElementById("ex-table");
+  exTable.innerHTML = entries.length === 0 ? '<div class="emptystate">아직 기록이 없습니다</div>' :
+    `<table><thead><tr><th>날짜</th><th>종류</th><th>종목</th><th>시간</th><th></th></tr></thead><tbody>
+      ${entries.map((e,i)=>`<tr>
+        <td>${e.date}</td>
+        <td><span class="kindtag ${e.kind}">${e.kind==="gym"?"헬스":"다른운동"}</span></td>
+        <td class="ex">${e.exercises.join(", ")}</td>
+        <td>${e.duration}분</td>
+        <td><button class="del" onclick="removeEntry(${i})">×</button></td>
+      </tr>`).join("")}
+    </tbody></table>`;
+
+  const convTable = document.getElementById("conv-table");
+  convTable.innerHTML = convEntries.length === 0 ? '<div class="emptystate">아직 메모가 없습니다</div>' :
+    `<table><thead><tr><th>날짜</th><th>메모</th><th></th></tr></thead><tbody>
+      ${convEntries.map((c,i)=>`<tr>
+        <td>${c.date}</td>
+        <td class="ex">${c.text}</td>
+        <td><button class="del" onclick="removeConv(${i})">×</button></td>
+      </tr>`).join("")}
+    </tbody></table>`;
+}
+
+// ---- CSV 내보내기/불러오기 (data_adapter.CSVAdapter 스키마와 정확히 일치) ----
+function csvEscape(s){
+  return /[",\n;]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+}
+
+function downloadCSV(){
+  if(entries.length === 0){ toast("내보낼 기록이 없습니다"); return; }
+  const lines = ["date,kind,exercises,duration_min"];
+  entries.forEach(e=>{
+    lines.push([e.date, e.kind, csvEscape(e.exercises.join(";")), e.duration].join(","));
+  });
+  downloadFile(lines.join("\n"), "workout_log.csv", "text/csv");
+}
+
+function loadCSV(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const lines = reader.result.split(/\r?\n/).filter(l=>l.trim());
+    const header = lines[0].split(",");
+    const idx = {date: header.indexOf("date"), kind: header.indexOf("kind"),
+                 exercises: header.indexOf("exercises"), duration: header.indexOf("duration_min")};
+    if(Object.values(idx).some(v=>v<0)){
+      toast("CSV 형식이 안 맞습니다 (date,kind,exercises,duration_min 필요)");
+      return;
+    }
+    let added = 0;
+    for(let i=1;i<lines.length;i++){
+      const cols = lines[i].split(",");
+      entries.push({
+        date: cols[idx.date],
+        kind: cols[idx.kind],
+        exercises: cols[idx.exercises].split(";").map(s=>s.trim()).filter(Boolean),
+        duration: parseFloat(cols[idx.duration]),
+      });
+      added++;
+    }
+    entries.sort((a,b)=> a.date.localeCompare(b.date));
+    render();
+    toast(`${added}건 불러왔습니다`);
+  };
+  reader.readAsText(file, "utf-8");
+  evt.target.value = "";
+}
+
+// ---- JSONL 내보내기/불러오기 (data_adapter.ConversationLogAdapter 스키마와 정확히 일치) ----
+function downloadJSONL(){
+  if(convEntries.length === 0){ toast("내보낼 메모가 없습니다"); return; }
+  const lines = convEntries.map(c => JSON.stringify({date: c.date, text: c.text}));
+  downloadFile(lines.join("\n"), "conversation_log.jsonl", "application/jsonl");
+}
+
+function loadJSONL(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const lines = reader.result.split(/\r?\n/).filter(l=>l.trim());
+    let added = 0;
+    for(const line of lines){
+      try{
+        const rec = JSON.parse(line);
+        if(rec.date && rec.text){ convEntries.push({date: rec.date, text: rec.text}); added++; }
+      }catch(e){ /* 형식 안 맞는 줄은 건너뜀 */ }
+    }
+    convEntries.sort((a,b)=> a.date.localeCompare(b.date));
+    render();
+    toast(`${added}건 불러왔습니다`);
+  };
+  reader.readAsText(file, "utf-8");
+  evt.target.value = "";
+}
+
+function downloadFile(content, filename, mime){
+  const blob = new Blob([content], {type: mime + ";charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast(`${filename} 다운로드됨`);
+}
+
+render();
+</script>
+</body>
+</html>
