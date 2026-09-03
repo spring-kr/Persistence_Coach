@@ -2,6 +2,7 @@
 
 > **SLO: Uptime, not 1RM.**  
 > 20년 지속한 사람의 기질(신호 감지·즉시 행동)을 유한 상태 기계(FSM)와 결정적 규칙 코어로 절차화한 AI 코칭 에이전트 시스템입니다.
+<a href="https://spring-kr.github.io/Persistence_Coach/" target="_blank"></a>
 
 ## 1. 아키텍처 개요 (Deterministic Core + LLM Separation)
 
